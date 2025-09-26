@@ -2,7 +2,7 @@
 Master Execution Script and supporting modules for ASCI EMPIRE project 
 
 # CLONE & INIT 
-git clone https://github.com/YOUR_USERNAME/EMPIRE-Master-Execution-Script.git
+git clone https://github.com/ddragon1221/EMPIRE-Master-Execution-Script.git
 cd EMPIRE-Master-Execution-Script
 
 # Init Node project
