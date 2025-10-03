@@ -1,0 +1,13 @@
+{
+  "DAQ-PCIe": 977.17,
+  "Oscilloscope-4ch": 86.27,
+  "Spectrum-Analyzer": 448.79,
+  "Thermocouples-Set": 373.66,
+  "Vibe-Fixture": 1117.88,
+  "Pressure-Rig": 1031.21,
+  "Power-Supply-600W": 1343.66,
+  "Torque-Wrench": 176.06,
+  "RF-Preamp": 661.79,
+  "CAN-Interface": 93.21,
+  "Flight-Computer-DevBoard": 367.03
+}
