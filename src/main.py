@@ -1,8 +1,6 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 import numpy as np
-
-# Explicit imports for clarity (no star imports)
 from TreeBuilder import Node, build_tree
 
 TEST_CHANGE_COST = 30
@@ -91,7 +89,7 @@ if __name__ == '__main__':
     tree, node_list = build_tree(3, 2, 3)
     to_sort = [n for n in node_list if len(n.children) == 0]
 
-    # Build the distance matrix and solve open path without fixed start
+    # Build the distance matrix and solve 
     distance_matrix = np.array(generate_distance_matrix(to_sort))
     print(distance_matrix)
 
