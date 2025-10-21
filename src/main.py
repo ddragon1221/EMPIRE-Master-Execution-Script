@@ -1,8 +1,6 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 import numpy as np
-
-# Explicit imports for clarity (no star imports)
 from TreeBuilder import Node, build_tree
 from stone_visuals import plot_schedule_visuals
 import sys
@@ -350,6 +348,7 @@ if __name__ == '__main__':
 
     initial_nodes = [n for n in node_list if len(n.children) == 0]
 
+<<<<<<< HEAD
     # Build the distance matrix and solve open path without fixed start
     distance_matrix = np.array(generate_distance_matrix(initial_nodes))
     route_indices = solve_open_path(distance_matrix)
@@ -384,3 +383,12 @@ if __name__ == '__main__':
 
     # Generate visualizations from the computed schedule
     plot_schedule_visuals(visited, day_map, out_dir="./out_viz", show=args.show_plots)
+=======
+    # Build the distance matrix and solve 
+    distance_matrix = np.array(generate_distance_matrix(to_sort))
+    print(distance_matrix)
+
+    route_indices = solve_open_path(distance_matrix)
+    order = [to_sort[idx] for idx in route_indices]
+    print(order)
+>>>>>>> 89dbec04ff3940ce47a1cda3996cd0184159755b
