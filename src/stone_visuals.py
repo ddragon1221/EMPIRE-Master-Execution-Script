@@ -1,7 +1,7 @@
 import os
 import random
 from dataclasses import dataclass
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -79,7 +79,7 @@ def generate_transition_matrix(envs: List[str]) -> np.ndarray:
 
 
 # VISUALIZATION FUNCTIONS
-def plot_heatmap(matrix: np.ndarray, labels: List[str], out_path: str):
+def plot_heatmap(matrix: np.ndarray, labels: List[str], out_path: str, show: bool = False):
     """
     Creates a heatmap that visualizes environment-to-environment transition costs.
     """
@@ -91,10 +91,16 @@ def plot_heatmap(matrix: np.ndarray, labels: List[str], out_path: str):
     plt.title("Environment Changeover Cost Heatmap")
     plt.tight_layout()
     plt.savefig(out_path)
-    plt.close()
+    if show:
+        try:
+            plt.show(block=False)
+        except Exception:
+            pass
+    else:
+        plt.close()
 
 
-def plot_histograms(test_data: Dict[str, TestType], env_data: Dict[str, Environment], out_dir: str):
+def plot_histograms(test_data: Dict[str, TestType], env_data: Dict[str, Environment], out_dir: str, show: bool = False):
     """
     Plots three histograms:
       - Test cost distribution
@@ -110,7 +116,13 @@ def plot_histograms(test_data: Dict[str, TestType], env_data: Dict[str, Environm
     plt.ylabel("Frequency")
     plt.tight_layout()
     plt.savefig(os.path.join(out_dir, "test_cost_hist.png"))
-    plt.close()
+    if show:
+        try:
+            plt.show(block=False)
+        except Exception:
+            pass
+    else:
+        plt.close()
 
     # 2) Test Duration Distribution
     plt.hist([t.duration for t in test_data.values()], bins=8, color='orange', alpha=0.7)
@@ -119,22 +131,67 @@ def plot_histograms(test_data: Dict[str, TestType], env_data: Dict[str, Environm
     plt.ylabel("Frequency")
     plt.tight_layout()
     plt.savefig(os.path.join(out_dir, "test_duration_hist.png"))
-    plt.close()
+    if show:
+        try:
+            plt.show(block=False)
+        except Exception:
+            pass
+    else:
+        plt.close()
 
-    # 3) Environment Cost Breakdown
-    plt.hist([e.hourly_cost for e in env_data.values()], bins=8, alpha=0.5, label="Hourly")
-    plt.hist([e.setup_cost for e in env_data.values()], bins=8, alpha=0.5, label="Setup")
-    plt.hist([e.teardown_cost for e in env_data.values()], bins=8, alpha=0.5, label="Teardown")
-    plt.title("Environment Cost Distribution")
+    # 3) Environment Cost Breakdown (Total and % by factor) — Pie
+    hourly_sum = float(sum(e.hourly_cost for e in env_data.values()))
+    setup_sum = float(sum(e.setup_cost for e in env_data.values()))
+    teardown_sum = float(sum(e.teardown_cost for e in env_data.values()))
+    total_env_cost = hourly_sum + setup_sum + teardown_sum
+
+    labels = ["Hourly", "Setup", "Teardown"]
+    values = [hourly_sum, setup_sum, teardown_sum]
+
+    plt.figure(figsize=(6, 6))
+    wedges, texts, autotexts = plt.pie(
+        values,
+        labels=labels,
+        autopct=lambda p: f"{p:.1f}%",
+        startangle=90,
+        colors=["#4c78a8", "#f58518", "#54a24b"],
+    )
+    plt.title(f"Environment Cost Breakdown (Total ${total_env_cost:,.0f})")
+    plt.tight_layout()
+    # Renamed to better reflect the chart type/content
+    plt.savefig(os.path.join(out_dir, "env_cost_breakdown_pie.png"))
+    if show:
+        try:
+            plt.show(block=False)
+        except Exception:
+            pass
+    else:
+        plt.close()
+
+
+def plot_env_cost_histograms(env_data: Dict[str, Environment], out_dir: str, show: bool = False):
+    """Plot histograms for environment cost components (hourly/setup/teardown)."""
+    os.makedirs(out_dir, exist_ok=True)
+
+    plt.hist([e.hourly_cost for e in env_data.values()], bins=8, alpha=0.6, label="Hourly")
+    plt.hist([e.setup_cost for e in env_data.values()], bins=8, alpha=0.6, label="Setup")
+    plt.hist([e.teardown_cost for e in env_data.values()], bins=8, alpha=0.6, label="Teardown")
+    plt.title("Environment Cost Components — Histograms")
     plt.xlabel("Cost ($)")
     plt.ylabel("Frequency")
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(out_dir, "env_cost_hist.png"))
-    plt.close()
+    if show:
+        try:
+            plt.show(block=False)
+        except Exception:
+            pass
+    else:
+        plt.close()
 
 
-def plot_gantt(schedule: List[Dict], out_path: str):
+def plot_gantt(schedule: List[Dict], out_path: str, show: bool = False, x_label: str = "Time (hours)"):
     """
     Creates a Gantt chart that shows when each test occurs in a given environment.
     The schedule input is a list of dictionaries with:
@@ -143,13 +200,115 @@ def plot_gantt(schedule: List[Dict], out_path: str):
     plt.figure(figsize=(10, 6))
     for idx, task in enumerate(schedule):
         plt.barh(task["env"], task["duration"], left=task["start"], label=task["test"])
-    plt.xlabel("Time (hours)")
+    plt.xlabel(x_label)
     plt.ylabel("Environment")
     plt.title("Verification Test Schedule (Gantt Chart)")
     plt.tight_layout()
     plt.savefig(out_path)
-    plt.close()
+    if show:
+        try:
+            plt.show(block=False)
+        except Exception:
+            pass
+    else:
+        plt.close()
 
+
+# SCHEDULE-DRIVEN VISUALS
+def _collect_from_nodes(nodes: List, key_fn):
+    items: Dict[str, any] = {}
+    for n in nodes:
+        k = key_fn(n)
+        if k not in items:
+            items[k] = k
+    return items
+
+
+def build_env_transition_cost_matrix_from_schedule(nodes_in_day_order: List) -> Tuple[List[str], np.ndarray]:
+    """Build an environment changeover cost matrix from a linearized schedule.
+
+    For each consecutive pair (prev -> curr) with different environments,
+    accumulates prev.env.teardown_cost + curr.env.setup_cost into M[prev_env, curr_env].
+    Returns (env_labels, matrix).
+    """
+    env_labels = sorted({n.enviroment.name for n in nodes_in_day_order})
+    idx = {e: i for i, e in enumerate(env_labels)}
+    m = np.zeros((len(env_labels), len(env_labels)), dtype=float)
+    for a, b in zip(nodes_in_day_order, nodes_in_day_order[1:]):
+        ea, eb = a.enviroment.name, b.enviroment.name
+        if ea == eb:
+            continue
+        m[idx[ea], idx[eb]] += (a.enviroment.teardown_cost + b.enviroment.setup_cost)
+    return env_labels, m
+
+
+def compute_hour_schedule(visited_nodes: List, day_map: Dict[int, int]) -> Dict[int, float]:
+    """Compute hour-based start times from discrete day slots and durations.
+
+    For each node n, start_hour[n] = max(
+      day_map[n]*24,
+      max(child_start + child_duration for child in n.children),
+      env_available[n.env]
+    )
+    where env_available tracks the end time of the last task scheduled in that environment.
+    Assumes visited_nodes is ordered child-before-parent.
+    Returns a mapping node.id -> start_hour (float).
+    """
+    start_hour: Dict[int, float] = {}
+    env_available: Dict[str, float] = {}
+
+    for n in visited_nodes:
+        base = float(day_map[n.id] * 24.0)
+        children_end = 0.0
+        if getattr(n, "children", None):
+            for c in n.children:
+                c_start = start_hour.get(c.id, 0.0)
+                c_end = c_start + float(getattr(c.test, "duration", 0.0))
+                if c_end > children_end:
+                    children_end = c_end
+        env_key = n.enviroment.name
+        env_ready = env_available.get(env_key, 0.0)
+        s = max(base, children_end, env_ready)
+        start_hour[n.id] = s
+        env_available[env_key] = s + float(getattr(n.test, "duration", 0.0))
+
+    return start_hour
+
+
+def plot_schedule_visuals(visited_nodes: List, day_map: Dict[int, int], out_dir: str = "./out_viz", show: bool = False):
+    """Generate heatmap, histograms, and a Gantt chart from the computed schedule.
+
+    - Heatmap: environment changeover accumulated cost along chronological order.
+    - Histograms: distributions of test durations and environment costs for used items.
+    - Gantt: per-environment bars at day-based starts; duration uses test.duration (hours).
+    """
+    os.makedirs(out_dir, exist_ok=True)
+
+    # Day-based sequence: reflect the schedule planned in discrete days
+    nodes_time = sorted(visited_nodes, key=lambda n: (day_map[n.id], n.enviroment.name, n.id))
+    env_labels, changeover = build_env_transition_cost_matrix_from_schedule(nodes_time)
+    plot_heatmap(changeover, env_labels, os.path.join(out_dir, "schedule_changeover_heatmap.png"), show=show)
+
+    # Histograms from actual used tests/envs
+    tests: Dict[str, TestType] = {}
+    envs: Dict[str, Environment] = {}
+    for n in visited_nodes:
+        tests[n.test.name] = n.test
+        envs[n.enviroment.name] = n.enviroment
+    plot_histograms(tests, envs, out_dir, show=show)
+    # Additional environment cost histograms
+    plot_env_cost_histograms(envs, out_dir, show=show)
+
+    # Gantt by day; one unit per task to reflect day slots
+    schedule: List[Dict] = []
+    for n in nodes_time:
+        schedule.append({
+            "test": f"ID:{n.id}-{n.test.name}",
+            "env": n.enviroment.name,
+            "start": float(day_map[n.id]),
+            "duration": 1.0,
+        })
+    plot_gantt(schedule, os.path.join(out_dir, "schedule_gantt.png"), show=show, x_label="Day")
 
 # MAIN EXECUTION FUNCTION
 def generate_visuals(output_dir: str = "./out_viz"):
