@@ -2,7 +2,7 @@
 # Temporary integration file to connect team modules.
 
 from src.TreeBuilder import build_tree
-from src.cora_distance import generate_instrument_catalog
+from src.distance import generate_instrument_catalog
 from src.stone_visuals import generate_visuals
 
 def main():
