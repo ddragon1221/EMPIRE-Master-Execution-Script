@@ -389,6 +389,34 @@ if __name__ == '__main__':
     print(distance_matrix)
 
     route_indices = solve_open_path(distance_matrix)
-    order = [to_sort[idx] for idx in route_indices]
-    print(order)
->>>>>>> 89dbec04ff3940ce47a1cda3996cd0184159755b
+    order = [initial_nodes[idx] for idx in route_indices] if route_indices else list(initial_nodes)
+
+    visited = list(order)
+    to_visit = get_parents(visited)
+
+    while True:
+        if len(to_visit) == 0:
+            break
+
+        insert_node, insert_pos = get_first_insert(visited, to_visit)
+        if insert_node is None or insert_pos is None:
+            # No valid insert candidate; prevent infinite loop
+            break
+
+        # Stable insertion: place parent immediately after its latest child
+        visited.insert(insert_pos + 1, insert_node)
+
+        # Update candidates and continue upward
+        to_visit = get_parents(visited)
+
+    # Build compressed per-environment schedule
+    day_map, env_schedule = schedule_by_environment(visited)
+
+    # Validate constraints
+    validate_schedule(visited, initial_nodes, day_map)
+
+    # Show schedule
+    print_schedule_grid(env_schedule)
+
+    # Generate visualizations from the computed schedule
+    plot_schedule_visuals(visited, day_map, out_dir="./out_viz", show=args.show_plots)
