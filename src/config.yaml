@@ -1,0 +1,33 @@
+random_seed: 42
+num_tests: 5
+
+test_types:
+  Functional: [1000, 3000]
+  Thermal: [1500, 4000]
+  Vibration: [2000, 5000]
+
+environments:
+  Env_A:
+    setup: 500
+    teardown: 400
+  Env_B:
+    setup: 700
+    teardown: 600
+
+instruments:
+  DAQ-PCIe: 120
+  Oscilloscope-4ch: 90
+  Spectrum-Analyzer: 110
+
+personnel:
+  Engineer: 60
+  Technician: 40
+
+same_env_bias: 0.3
+output_dir: "./out_viz"
+write_csv: true
+
+charts:
+  heatmap: true
+  gantt: true
+  histograms: true
