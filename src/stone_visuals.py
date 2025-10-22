@@ -91,12 +91,7 @@ def plot_heatmap(matrix: np.ndarray, labels: List[str], out_path: str, show: boo
     plt.title("Environment Changeover Cost Heatmap")
     plt.tight_layout()
     plt.savefig(out_path)
-    if show:
-        try:
-            plt.show(block=False)
-        except Exception:
-            pass
-    else:
+    if not show:
         plt.close()
 
 
@@ -110,33 +105,25 @@ def plot_histograms(test_data: Dict[str, TestType], env_data: Dict[str, Environm
     os.makedirs(out_dir, exist_ok=True)
 
     # 1) Test Cost Distribution
+    plt.figure(figsize=(6, 4))
     plt.hist([t.cost for t in test_data.values()], bins=10, color='blue', alpha=0.7)
     plt.title("Test Cost Distribution")
     plt.xlabel("Cost ($)")
     plt.ylabel("Frequency")
     plt.tight_layout()
     plt.savefig(os.path.join(out_dir, "test_cost_hist.png"))
-    if show:
-        try:
-            plt.show(block=False)
-        except Exception:
-            pass
-    else:
+    if not show:
         plt.close()
 
     # 2) Test Duration Distribution
+    plt.figure(figsize=(6, 4))
     plt.hist([t.duration for t in test_data.values()], bins=8, color='orange', alpha=0.7)
     plt.title("Test Duration Distribution")
     plt.xlabel("Duration (hours)")
     plt.ylabel("Frequency")
     plt.tight_layout()
     plt.savefig(os.path.join(out_dir, "test_duration_hist.png"))
-    if show:
-        try:
-            plt.show(block=False)
-        except Exception:
-            pass
-    else:
+    if not show:
         plt.close()
 
     # 3) Environment Cost Breakdown (Total and % by factor) — Pie
@@ -160,12 +147,7 @@ def plot_histograms(test_data: Dict[str, TestType], env_data: Dict[str, Environm
     plt.tight_layout()
     # Renamed to better reflect the chart type/content
     plt.savefig(os.path.join(out_dir, "env_cost_breakdown_pie.png"))
-    if show:
-        try:
-            plt.show(block=False)
-        except Exception:
-            pass
-    else:
+    if not show:
         plt.close()
 
 
@@ -173,6 +155,7 @@ def plot_env_cost_histograms(env_data: Dict[str, Environment], out_dir: str, sho
     """Plot histograms for environment cost components (hourly/setup/teardown)."""
     os.makedirs(out_dir, exist_ok=True)
 
+    plt.figure(figsize=(6, 4))
     plt.hist([e.hourly_cost for e in env_data.values()], bins=8, alpha=0.6, label="Hourly")
     plt.hist([e.setup_cost for e in env_data.values()], bins=8, alpha=0.6, label="Setup")
     plt.hist([e.teardown_cost for e in env_data.values()], bins=8, alpha=0.6, label="Teardown")
@@ -182,12 +165,7 @@ def plot_env_cost_histograms(env_data: Dict[str, Environment], out_dir: str, sho
     plt.legend()
     plt.tight_layout()
     plt.savefig(os.path.join(out_dir, "env_cost_hist.png"))
-    if show:
-        try:
-            plt.show(block=False)
-        except Exception:
-            pass
-    else:
+    if not show:
         plt.close()
 
 
@@ -309,6 +287,13 @@ def plot_schedule_visuals(visited_nodes: List, day_map: Dict[int, int], out_dir:
             "duration": 1.0,
         })
     plot_gantt(schedule, os.path.join(out_dir, "schedule_gantt.png"), show=show, x_label="Day")
+
+    # Keep figures open when requested (block until user closes)
+    if show:
+        try:
+            plt.show()
+        except Exception:
+            pass
 
 # MAIN EXECUTION FUNCTION
 def generate_visuals(output_dir: str = "./out_viz"):

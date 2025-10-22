@@ -3,7 +3,6 @@ from ortools.constraint_solver import pywrapcp
 import numpy as np
 from TreeBuilder import Node, build_tree
 from stone_visuals import plot_schedule_visuals
-import sys
 import argparse
 
 TEST_CHANGE_COST = 30
@@ -128,40 +127,6 @@ def get_first_insert(child_list: list[Node], parent_list: list[Node]):
             best_parent = parent
 
     return (best_parent, best_max_idx)
-
-
-def print_tree(root: Node) -> None:
-    """Pretty-print the node tree using Unicode when possible, ASCII otherwise.
-
-    Each line shows: ID, environment, and test.
-    """
-    # Decide on symbol set based on console encoding capabilities
-    try:
-        enc = sys.stdout.encoding or "utf-8"
-        "└".encode(enc)
-        branch_sym = "├─ "
-        last_sym = "└─ "
-        vertical_sym = "│  "
-        space_sym = "   "
-    except Exception:
-        branch_sym = "+- "
-        last_sym = "`- "
-        vertical_sym = "|  "
-        space_sym = "   "
-
-    def _visit(node: Node, prefix: str, is_last: bool) -> None:
-        connector = last_sym if is_last else branch_sym
-        label = f"ID:{node.id} env={node.enviroment.name} test={node.test.name}"
-        if prefix:
-            print(prefix + connector + label)
-        else:
-            print(label)
-        new_prefix = prefix + (space_sym if is_last else vertical_sym)
-        for i, child in enumerate(node.children):
-            _visit(child, new_prefix, i == len(node.children) - 1)
-
-    _visit(root, "", True)
-
 
 def schedule_by_environment(ordered: list[Node]):
     """Compress schedule by environment while respecting child-before-parent.
@@ -330,7 +295,7 @@ def validate_schedule(visited: list[Node], initial_nodes: list[Node], day_map: d
 if __name__ == '__main__':
     # Parse optional CLI arguments to flexibly control tree shape
     parser = argparse.ArgumentParser(description='Build tree and schedule tests.')
-    parser.add_argument('--depth', type=int, default=5, help='Tree depth (levels of children)')
+    parser.add_argument('--depth', type=int, default=4, help='Tree depth (levels of children)')
     parser.add_argument('--min-child', type=int, default=1, help='Minimum children per node')
     parser.add_argument('--max-child', type=int, default=3, help='Maximum children per node')
     parser.add_argument('--show-plots', action='store_true', help='Display Matplotlib figures in addition to saving files')
@@ -339,16 +304,8 @@ if __name__ == '__main__':
     # Build a tree and collect leaves to sort
     tree, node_list = build_tree(args.depth, args.min_child, args.max_child)
 
-    # Print the tree structure (IDs with env and test) for inspection
-    #print("Tree structure (child hierarchy):")
-    #print_tree(tree)
-    #print()
-
-
-
     initial_nodes = [n for n in node_list if len(n.children) == 0]
 
-<<<<<<< HEAD
     # Build the distance matrix and solve open path without fixed start
     distance_matrix = np.array(generate_distance_matrix(initial_nodes))
     route_indices = solve_open_path(distance_matrix)
@@ -383,40 +340,10 @@ if __name__ == '__main__':
 
     # Generate visualizations from the computed schedule
     plot_schedule_visuals(visited, day_map, out_dir="./out_viz", show=args.show_plots)
-=======
-    # Build the distance matrix and solve 
-    distance_matrix = np.array(generate_distance_matrix(to_sort))
-    print(distance_matrix)
 
-    route_indices = solve_open_path(distance_matrix)
-    order = [initial_nodes[idx] for idx in route_indices] if route_indices else list(initial_nodes)
-
-    visited = list(order)
-    to_visit = get_parents(visited)
-
-    while True:
-        if len(to_visit) == 0:
-            break
-
-        insert_node, insert_pos = get_first_insert(visited, to_visit)
-        if insert_node is None or insert_pos is None:
-            # No valid insert candidate; prevent infinite loop
-            break
-
-        # Stable insertion: place parent immediately after its latest child
-        visited.insert(insert_pos + 1, insert_node)
-
-        # Update candidates and continue upward
-        to_visit = get_parents(visited)
-
-    # Build compressed per-environment schedule
-    day_map, env_schedule = schedule_by_environment(visited)
-
-    # Validate constraints
-    validate_schedule(visited, initial_nodes, day_map)
-
-    # Show schedule
-    print_schedule_grid(env_schedule)
-
-    # Generate visualizations from the computed schedule
-    plot_schedule_visuals(visited, day_map, out_dir="./out_viz", show=args.show_plots)
+    # Keep console session alive so charts remain open under some runners
+    if args.show_plots:
+        try:
+            input("Press Enter to exit and close charts...")
+        except EOFError:
+            pass
