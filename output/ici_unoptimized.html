@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>ICI Integration Chain</title>
+  <script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
+  <link href="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    #network {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background: white;
+    }
+    .info {
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #e3f2fd;
+      border-radius: 4px;
+      border-left: 4px solid #2b7ce9;
+    }
+    .controls {
+      margin-bottom: 15px;
+      padding: 10px;
+      background: white;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+    }
+    .controls button {
+      padding: 8px 16px;
+      margin-right: 10px;
+      background: #2b7ce9;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+    .controls button:hover {
+      background: #1a5bb8;
+    }
+    .controls button:active {
+      background: #14478a;
+    }
+    #selectionCount {
+      color: #2b7ce9;
+    }
+  </style>
+</head>
+<body>
+  <div class="info">
+    <strong>ICI Integration Chain</strong> (Hierarchical Layout)<br>
+    📍 <strong>Click node</strong> to select (Ctrl/Cmd+Click for multi-select)<br>
+    🎯 <strong>Drag on background</strong> to draw selection box<br>
+    🔄 <strong>Drag selected nodes</strong> to move them together<br>
+    🔍 <strong>Mouse wheel</strong> to zoom in/out<br>
+    ✋ <strong>Click background</strong> to deselect all<br>
+    💡 <strong>Hover over nodes</strong> to see details<br>
+    <em>Edges show parent → child relationships</em>
+  </div>
+  <div class="controls">
+    <button id="selectAll" title="Select all nodes">Select All</button>
+    <button id="deselectAll" title="Deselect all nodes">Deselect All</button>
+    
+    <span id="selectionCount" style="margin-left: 15px; font-weight: bold;">Selected: 0</span>
+  </div>
+  <div id="network" style="height: 800px;"></div>
+  <script type="text/javascript">
+    const nodes = new vis.DataSet([{"id": 38, "label": "38", "title": "ICI 38\\nSystem Elements (35): 1, 2, 3, 7, 8, 9, 18, 19, 20, 4, 5, 6, 21, 22, 29, 30, 10, 11, 12, 23, 24, 25, 13, 14, 15, 26, 27, 28, 16, 17, 31, 32, 33, 34, 35", "x": 0.0, "y": 0}, {"id": 39, "label": "39", "title": "ICI 39\\nSystem Elements (9): 2, 7, 8, 9, 18, 19, 20, 29, 30", "x": -60.0, "y": 150}, {"id": 40, "label": "40", "title": "ICI 40\\nSystem Elements (25): 3, 4, 5, 6, 21, 22, 10, 11, 12, 23, 24, 25, 13, 14, 15, 26, 27, 28, 16, 17, 31, 32, 33, 34, 35", "x": 60.0, "y": 150}, {"id": 41, "label": "41", "title": "ICI 41\\nSystem Elements (1): 7", "x": -600.0, "y": 300}, {"id": 42, "label": "42", "title": "ICI 42\\nSystem Elements (1): 8", "x": -480.0, "y": 300}, {"id": 43, "label": "43", "title": "ICI 43\\nSystem Elements (3): 9, 29, 30", "x": -360.0, "y": 300}, {"id": 44, "label": "44", "title": "ICI 44\\nSystem Elements (1): 18", "x": -240.0, "y": 300}, {"id": 45, "label": "45", "title": "ICI 45\\nSystem Elements (1): 19", "x": -120.0, "y": 300}, {"id": 46, "label": "46", "title": "ICI 46\\nSystem Elements (1): 20", "x": 0.0, "y": 300}, {"id": 47, "label": "47", "title": "ICI 47\\nSystem Elements (9): 4, 10, 11, 12, 23, 24, 25, 31, 32", "x": 120.0, "y": 300}, {"id": 48, "label": "48", "title": "ICI 48\\nSystem Elements (10): 5, 13, 14, 15, 26, 27, 28, 33, 34, 35", "x": 240.0, "y": 300}, {"id": 49, "label": "49", "title": "ICI 49\\nSystem Elements (3): 6, 16, 17", "x": 360.0, "y": 300}, {"id": 50, "label": "50", "title": "ICI 50\\nSystem Elements (1): 21", "x": 480.0, "y": 300}, {"id": 51, "label": "51", "title": "ICI 51\\nSystem Elements (1): 22", "x": 600.0, "y": 300}, {"id": 52, "label": "52", "title": "ICI 52\\nSystem Elements (1): 29", "x": -900.0, "y": 450}, {"id": 53, "label": "53", "title": "ICI 53\\nSystem Elements (1): 30", "x": -780.0, "y": 450}, {"id": 54, "label": "54", "title": "ICI 54\\nSystem Elements (1): 10", "x": -660.0, "y": 450}, {"id": 55, "label": "55", "title": "ICI 55\\nSystem Elements (3): 11, 31, 32", "x": -540.0, "y": 450}, {"id": 56, "label": "56", "title": "ICI 56\\nSystem Elements (1): 12", "x": -420.0, "y": 450}, {"id": 57, "label": "57", "title": "ICI 57\\nSystem Elements (1): 23", "x": -300.0, "y": 450}, {"id": 58, "label": "58", "title": "ICI 58\\nSystem Elements (1): 24", "x": -180.0, "y": 450}, {"id": 59, "label": "59", "title": "ICI 59\\nSystem Elements (1): 25", "x": -60.0, "y": 450}, {"id": 60, "label": "60", "title": "ICI 60\\nSystem Elements (1): 13", "x": 60.0, "y": 450}, {"id": 61, "label": "61", "title": "ICI 61\\nSystem Elements (1): 14", "x": 180.0, "y": 450}, {"id": 62, "label": "62", "title": "ICI 62\\nSystem Elements (4): 15, 33, 34, 35", "x": 300.0, "y": 450}, {"id": 63, "label": "63", "title": "ICI 63\\nSystem Elements (1): 26", "x": 420.0, "y": 450}, {"id": 64, "label": "64", "title": "ICI 64\\nSystem Elements (1): 27", "x": 540.0, "y": 450}, {"id": 65, "label": "65", "title": "ICI 65\\nSystem Elements (1): 28", "x": 660.0, "y": 450}, {"id": 66, "label": "66", "title": "ICI 66\\nSystem Elements (1): 16", "x": 780.0, "y": 450}, {"id": 67, "label": "67", "title": "ICI 67\\nSystem Elements (1): 17", "x": 900.0, "y": 450}, {"id": 68, "label": "68", "title": "ICI 68\\nSystem Elements (1): 31", "x": -240.0, "y": 600}, {"id": 69, "label": "69", "title": "ICI 69\\nSystem Elements (1): 32", "x": -120.0, "y": 600}, {"id": 70, "label": "70", "title": "ICI 70\\nSystem Elements (1): 33", "x": 0.0, "y": 600}, {"id": 71, "label": "71", "title": "ICI 71\\nSystem Elements (1): 34", "x": 120.0, "y": 600}, {"id": 72, "label": "72", "title": "ICI 72\\nSystem Elements (1): 35", "x": 240.0, "y": 600}]);
+    const edges = new vis.DataSet([{"from": 39, "to": 38, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_39_38"}, {"from": 40, "to": 38, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_40_38"}, {"from": 41, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_41_39"}, {"from": 42, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_42_39"}, {"from": 43, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_43_39"}, {"from": 44, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_44_39"}, {"from": 45, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_45_39"}, {"from": 46, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_46_39"}, {"from": 47, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_47_40"}, {"from": 48, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_48_40"}, {"from": 49, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_49_40"}, {"from": 50, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_50_40"}, {"from": 51, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_51_40"}, {"from": 52, "to": 43, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_52_43"}, {"from": 53, "to": 43, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_53_43"}, {"from": 54, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_54_47"}, {"from": 55, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_55_47"}, {"from": 56, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_56_47"}, {"from": 57, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_57_47"}, {"from": 58, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_58_47"}, {"from": 59, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_59_47"}, {"from": 60, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_60_48"}, {"from": 61, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_61_48"}, {"from": 62, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_62_48"}, {"from": 63, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_63_48"}, {"from": 64, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_64_48"}, {"from": 65, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_65_48"}, {"from": 66, "to": 49, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_66_49"}, {"from": 67, "to": 49, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_67_49"}, {"from": 68, "to": 55, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_68_55"}, {"from": 69, "to": 55, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_69_55"}, {"from": 70, "to": 62, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_70_62"}, {"from": 71, "to": 62, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_71_62"}, {"from": 72, "to": 62, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_72_62"}]);
+    const container = document.getElementById('network');
+    const data = {
+      nodes: nodes,
+      edges: edges
+    };
+    const options = {
+      layout: {
+        hierarchical: false
+      },
+      physics: {
+        enabled: false
+      },
+      interaction: {
+        dragNodes: true,
+        dragView: true,
+        zoomView: true,
+        hover: true,
+        multiselect: true,
+        selectConnectedEdges: false,
+        tooltipDelay: 200
+      },
+      nodes: {
+        shape: 'box',
+        margin: 10,
+        widthConstraint: {
+          minimum: 60,
+          maximum: 120
+        },
+        color: {
+          background: '#e8eef7',
+          border: '#2b7ce9',
+          highlight: {
+            background: '#ffd700',
+            border: '#ff8c00'
+          }
+        },
+        borderWidth: 2,
+        borderWidthSelected: 4,
+        font: {
+          size: 14,
+          color: '#222',
+          bold: {
+            color: '#000'
+          }
+        },
+        shadow: {
+          enabled: true,
+          color: 'rgba(0,0,0,0.15)',
+          size: 5,
+          x: 2,
+          y: 2
+        }
+      },
+      edges: {
+        arrows: {
+          to: {
+            enabled: true,
+            scaleFactor: 0.8,
+            type: 'arrow'
+          }
+        },
+        color: {
+          color: '#666',
+          highlight: '#2b7ce9',
+          hover: '#2b7ce9'
+        },
+        width: 2,
+        smooth: {
+          type: 'cubicBezier',
+          forceDirection: 'vertical',
+          roundness: 0.5
+        },
+        shadow: {
+          enabled: true,
+          color: 'rgba(0,0,0,0.1)',
+          size: 3,
+          x: 1,
+          y: 1
+        }
+      }
+    };
+    const network = new vis.Network(container, data, options);
+
+    // Track selection and interface visibility
+    let selectedNodes = [];
+    let interfacesVisible = true;
+
+    // Get interface edge IDs
+    const interfaceEdges = [{"from": 39, "to": 38, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_39_38"}, {"from": 40, "to": 38, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_40_38"}, {"from": 41, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_41_39"}, {"from": 42, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_42_39"}, {"from": 43, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_43_39"}, {"from": 44, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_44_39"}, {"from": 45, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_45_39"}, {"from": 46, "to": 39, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_46_39"}, {"from": 47, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_47_40"}, {"from": 48, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_48_40"}, {"from": 49, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_49_40"}, {"from": 50, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_50_40"}, {"from": 51, "to": 40, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_51_40"}, {"from": 52, "to": 43, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_52_43"}, {"from": 53, "to": 43, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_53_43"}, {"from": 54, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_54_47"}, {"from": 55, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_55_47"}, {"from": 56, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_56_47"}, {"from": 57, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_57_47"}, {"from": 58, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_58_47"}, {"from": 59, "to": 47, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_59_47"}, {"from": 60, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_60_48"}, {"from": 61, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_61_48"}, {"from": 62, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_62_48"}, {"from": 63, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_63_48"}, {"from": 64, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_64_48"}, {"from": 65, "to": 48, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_65_48"}, {"from": 66, "to": 49, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_66_49"}, {"from": 67, "to": 49, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_67_49"}, {"from": 68, "to": 55, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_68_55"}, {"from": 69, "to": 55, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_69_55"}, {"from": 70, "to": 62, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_70_62"}, {"from": 71, "to": 62, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_71_62"}, {"from": 72, "to": 62, "arrows": "to", "color": {"color": "#666", "highlight": "#2b7ce9"}, "dashes": false, "width": 2, "id": "hierarchy_72_62"}]
+      .filter(e => e.id && e.id.startsWith('interface_'))
+      .map(e => e.id);
+
+    // Update selection count display
+    function updateSelectionCount() {
+      selectedNodes = network.getSelectedNodes();
+      document.getElementById('selectionCount').textContent = `Selected: ${selectedNodes.length}`;
+    }
+
+    // Toggle interfaces visibility (only if toggle button exists)
+    const toggleButton = document.getElementById('toggleInterfaces');
+    if (toggleButton) {
+      toggleButton.addEventListener('click', function() {
+        interfacesVisible = !interfacesVisible;
+
+        if (interfacesVisible) {
+          // Show interfaces
+          interfaceEdges.forEach(edgeId => {
+            edges.update({id: edgeId, hidden: false});
+          });
+          toggleButton.textContent = 'Hide Interfaces';
+          toggleButton.style.background = '#2b7ce9';
+        } else {
+          // Hide interfaces
+          interfaceEdges.forEach(edgeId => {
+            edges.update({id: edgeId, hidden: true});
+          });
+          toggleButton.textContent = 'Show Interfaces';
+          toggleButton.style.background = '#ff6b6b';
+        }
+      });
+    }
+
+    // Selection changed event
+    network.on('selectNode', function(params) {
+      updateSelectionCount();
+    });
+
+    network.on('deselectNode', function(params) {
+      updateSelectionCount();
+    });
+
+    network.on('select', function(params) {
+      updateSelectionCount();
+    });
+
+    // Select All button
+    document.getElementById('selectAll').addEventListener('click', function() {
+      const allNodeIds = nodes.getIds();
+      network.selectNodes(allNodeIds);
+      updateSelectionCount();
+    });
+
+    // Deselect All button
+    document.getElementById('deselectAll').addEventListener('click', function() {
+      network.unselectAll();
+      updateSelectionCount();
+    });
+
+    // Click on canvas to deselect
+    network.on('click', function(params) {
+      if (params.nodes.length === 0) {
+        network.unselectAll();
+        updateSelectionCount();
+      }
+    });
+
+    // Log drag events (optional - for debugging)
+    network.on('dragEnd', function(params) {
+      if (params.nodes.length > 0) {
+        const selected = network.getSelectedNodes();
+        if (selected.length > 1) {
+          console.log(`Moved ${selected.length} nodes together`);
+        }
+        params.nodes.forEach(function(nodeId) {
+          const position = network.getPositions([nodeId])[nodeId];
+          console.log('Node ' + nodeId + ' moved to:', position);
+        });
+      }
+    });
+
+    // Initial count
+    updateSelectionCount();
+  </script>
+</body>
+</html>
