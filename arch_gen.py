@@ -19,11 +19,18 @@ class SystemElement:
 
     def __init__(self):
         self.element_id = self.get_element_id()
-        self.parents = []
+        self.parent = None
         self.children = []
         self.interfaces = []
         self.functions = []
         self.capabilities = []
+        self.foundational = None
+
+    def set_parent(self, parent):
+        self.parent = parent
+
+    def assign_foundational(self, found_cost: FoundationalCosts):
+        self.foundational = found_cost
 
     def get_element_id(self):
         SystemElement.element_id += 1
@@ -111,13 +118,13 @@ def generate_architecture(layers: int, max_children: int):
             for _ in range(num_children):
                 child = SystemElement()
                 element.children.append(child)
-                child.parents.append(element)
+                child.set_parent(element)
                 current_layer.append(child)
         all_elements += current_layer
         past_layer = copy.copy(current_layer)
     return all_elements
 
-def generate_interfaces(all_elements: list, prob_interface = 0.4):
+def generate_interfaces(all_elements: list[SystemElement], prob_interface = 0.4):
     """
     Given a list of system elements,
     generates interfaces between children of system elements
@@ -142,6 +149,15 @@ def generate_interfaces(all_elements: list, prob_interface = 0.4):
                 while interface_element in (child, all_elements[0]):
                     interface_element = random.choices(all_elements)[0]
                 assign_interface(child, interface_element)
+
+def assign_foundational_costs(all_elements: list[SystemElement]):
+    """Generates a object that holds costs and assigns it to all foundational system elements
+    """
+    for element in all_elements:
+        if not element.children:
+            # 50% chance to add a manufactured cost
+            manufactured_flag = bool(random.randint(0,1))
+            element.assign_foundational(FoundationalCosts(manufactured_flag))
 
 def set_seed(seed: int):
     random.seed(seed)

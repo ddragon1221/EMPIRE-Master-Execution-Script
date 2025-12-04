@@ -306,12 +306,14 @@ if __name__ == "__main__":
     set_seed(718)
     system_elements = generate_architecture(layers=5, max_children=3)
     generate_interfaces(system_elements, 0)
+    assign_foundational_costs(system_elements)
     ici_optimized = run_ICI_integration_optimized(system_elements)
     ici_unoptimized = run_ICI_integration_unoptimized(system_elements)
-
+    """
     for ver in ici_optimized.verifications:
         if isinstance(ver, Test):
             print(f"{ver.test_id}")
+    """
     print("Done")
 
     # ____ Visuals ____
